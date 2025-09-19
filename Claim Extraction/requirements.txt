@@ -1,0 +1,7 @@
+pandas
+torch
+transformers
+py_vncorenlp
+numpy
+scikit-learn
+underthesea
