@@ -8,11 +8,24 @@ from transformers import (
     Seq2SeqTrainingArguments,
     Seq2SeqTrainer
 )
-
 from sklearn.model_selection import train_test_split
+import torch
+
+# Check if CUDA is available
+print(f"CUDA available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    print(f"GPU: {torch.cuda.get_device_name(0)}")
+    print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
 
 print(">> [1] Load & split dataset")
-df = pd.read_csv("data/contextualized_claims.csv")  # claim,article,contextualized_claim
+# --- Sửa phần đọc CSV ---
+df = pd.read_csv("/kaggle/input/contextualized-claims/dataset1.csv",
+                 header=None, skipinitialspace=True)
+# Xóa dấu " nếu có
+df = df.applymap(lambda x: x.strip('"') if isinstance(x, str) else x)
+# Đặt tên cột
+df.columns = ["claim", "article", "contextualized_claim"]
+
 print("   Số dòng dữ liệu:", len(df))
 
 def build_input(row):
@@ -29,6 +42,7 @@ train_dataset = Dataset.from_pandas(train_df[["input_text", "target_text"]])
 valid_dataset = Dataset.from_pandas(valid_df[["input_text", "target_text"]])
 test_dataset  = Dataset.from_pandas(test_df[["input_text", "target_text"]])
 
+# Phần còn lại giữ nguyên
 print(">> [2] Load tokenizer")
 model_name = "VietAI/vit5-large-vietnews-summarization"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -69,17 +83,23 @@ training_args = Seq2SeqTrainingArguments(
     eval_strategy="epoch",
     save_strategy="epoch",
     learning_rate=3e-5,
-    per_device_train_batch_size=4,
-    per_device_eval_batch_size=4,
-    num_train_epochs=10,
+    per_device_train_batch_size=1,
+    per_device_eval_batch_size=1,
+    num_train_epochs=2,
     weight_decay=0.01,
-    save_total_limit=2,
+    save_total_limit=1,
     logging_dir="./logs",
-    logging_steps=50,
+    logging_steps=10,
     report_to="none",
-    predict_with_generate=True   # <-- chuyển sang đây
+    predict_with_generate=True,
+    fp16=True,
+    dataloader_pin_memory=False,
+    gradient_accumulation_steps=4,
+    max_grad_norm=1.0,
+    warmup_steps=50,
+    save_steps=100,
+    eval_steps=100
 )
-
 
 trainer = Seq2SeqTrainer(
     model=model,
@@ -88,9 +108,8 @@ trainer = Seq2SeqTrainer(
     eval_dataset=valid_dataset,
     tokenizer=tokenizer,
     data_collator=data_collator,
-    compute_metrics=compute_metrics
+    compute_metrics=compute_metrics,
 )
-
 
 print(">> [6] Start training...")
 trainer.train()
