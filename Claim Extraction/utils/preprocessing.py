@@ -1,17 +1,65 @@
 import os
+import jnius_config
+
+# Set JAVA_HOME
+os.environ["JAVA_HOME"] = r"C:\Program Files\Eclipse Adoptium\jdk-8.0.462.8-hotspot"
+
+# Nếu bạn cần thêm .jar (ví dụ VnCoreNLP jar) thì chỉ định ở đây
+jnius_config.set_classpath(r"C:\Users\LENOVO\Downloads\vncorenlp\VnCoreNLP-1.2.jar")
+
 import re
 from underthesea import sent_tokenize
 import py_vncorenlp
 
-# Đường dẫn tới thư mục chứa VnCoreNLP-1.2.jar và models
-VNCORENLP_DIR = r"C:\Users\LENOVO\Downloads\vncorenlp"
 
-# Khởi tạo VnCoreNLP với annotators đầy đủ
+# Đường dẫn tới thư mục chứa VnCoreNLP-1.2.jar và models
+#VNCORENLP_DIR = r"C:\Users\LENOVO\Downloads\vncorenlp"
+# VNCORENLP_DIR = "/kaggle/working/vncorenlp"
+# model = py_vncorenlp.VnCoreNLP(
+#     annotators=["wseg", "pos", "ner", "parse"],
+#     save_dir="vncorenlp",
+#     max_heap_size='-Xmx2g'
+# )
+# ROOT_DIR: tự động lấy root folder project
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # Test/
+ROOT_DIR = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
+
+VNCORENLP_DIR = os.path.join(ROOT_DIR, "py_vncorenlp")
+JAR_PATH = os.path.join(VNCORENLP_DIR, "VnCoreNLP-1.1.1.jar")
+
+# Kiểm tra tồn tại jar
+if not os.path.exists(JAR_PATH):
+    raise FileNotFoundError(f"Cannot find VnCoreNLP jar at {JAR_PATH}")
+
+
+
+# Kiểm tra
+assert os.path.exists(JAR_PATH), f"Jar not found: {JAR_PATH}"
+assert os.path.exists(os.path.join(VNCORENLP_DIR, "models")), "models folder not found"
+
+# Kiểm tra file jar
+if not os.path.exists(JAR_PATH):
+    raise FileNotFoundError(f"Cannot find VnCoreNLP jar at {JAR_PATH}")
+
+print("VNCORENLP_DIR:", VNCORENLP_DIR)
+print("JAR_PATH:", JAR_PATH)
+
+# Khởi tạo model
 model = py_vncorenlp.VnCoreNLP(
     annotators=["wseg", "pos", "ner", "parse"],
-    save_dir=VNCORENLP_DIR,
+    save_dir=VNCORENLP_DIR,  # folder chứa jar + models
     max_heap_size='-Xmx2g'
 )
+
+print("✅ VnCoreNLP loaded successfully")
+
+# Khởi tạo VnCoreNLP với annotators đầy đủ
+# model = py_vncorenlp.VnCoreNLP(
+#     annotators=["wseg", "pos", "ner", "parse"],
+#     save_dir=VNCORENLP_DIR,
+#     max_heap_size='-Xmx2g'
+# )
 
 # Danh sách viết tắt phổ biến
 ABBREVIATIONS = ["PGS.", "GS.", "TS.", "ThS.", "TP.", "Ô.", "Bà.", "Ông."]

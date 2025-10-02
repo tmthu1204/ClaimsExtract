@@ -69,7 +69,7 @@ for idx, row in df.iterrows():
 
 
 out_df = pd.DataFrame(claims)
-out_csv = r"D:\StudySpace\Tài liệu\UIT Data Challenge\Claim Extraction\data\claims_output_test.csv"
+out_csv = r"D:\StudySpace\Tài liệu\UIT Data Challenge\Claim Extraction\data\claims_output.csv"
 out_df.to_csv(out_csv, index=False, encoding="utf-8-sig")
 print(f"\n✅ Done! Claims saved to {out_csv}")
 print(f"Total claims extracted: {len(claims)}")

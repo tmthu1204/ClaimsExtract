@@ -175,7 +175,7 @@ if torch.cuda.is_available():
 
 print(">> [1] Load & split dataset")
 # --- Sửa phần đọc CSV ---
-df = pd.read_csv("data/contextualized_claims.csv",
+df = pd.read_csv("data/contextualized_claims_train.csv",
                  header=None, skipinitialspace=True)
 # Xóa dấu " nếu có
 df = df.applymap(lambda x: x.strip('"') if isinstance(x, str) else x)
